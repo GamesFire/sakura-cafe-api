@@ -4,7 +4,7 @@ import { ApiProperty } from "@nestjs/swagger";
 export enum Role {
   ADMIN = "адміністратор",
   USER = "користувач",
-  GHOST = "привид",
+  GUEST = "гість",
 }
 
 @Entity()
@@ -44,14 +44,14 @@ export class User {
   @Column({
     type: "enum",
     enum: Role,
-    default: Role.GHOST,
+    default: Role.GUEST,
   })
   @ApiProperty({
     enum: Role,
     enumName: "Role",
-    default: Role.GHOST,
+    default: Role.GUEST,
     description: "Роль користувача",
-    example: "привид",
+    example: "гість",
   })
   role: string;
 
@@ -62,12 +62,4 @@ export class User {
     nullable: false,
   })
   activationLink: string;
-
-  @Column({ name: "is_activated", default: false })
-  @ApiProperty({
-    example: true,
-    description: "Індикатор, який показуює, чи активовано обліковий запис користувача",
-    default: false,
-  })
-  isActivated: boolean;
 }

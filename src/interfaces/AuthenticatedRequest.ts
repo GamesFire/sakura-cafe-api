@@ -5,7 +5,6 @@ export interface UserPayload {
   name: string;
   email: string;
   role: string;
-  isActivated: boolean;
 }
 
 export interface AuthenticatedRequest extends Request {

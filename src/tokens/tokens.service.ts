@@ -26,7 +26,6 @@ export class TokensService {
       name: user.name,
       email: user.email,
       role: user.role,
-      isActivated: user.isActivated,
     };
 
     const accessToken = this.jwtService.sign(payload, {

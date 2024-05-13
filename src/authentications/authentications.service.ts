@@ -104,7 +104,6 @@ export class AuthenticationsService {
     }
 
     try {
-      user.isActivated = true;
       user.role = Role.USER;
 
       await this.userService.saveUser(user);

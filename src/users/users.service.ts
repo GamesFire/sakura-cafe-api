@@ -47,7 +47,7 @@ export class UsersService {
       );
     }
 
-    if (user.role === Role.GHOST) {
+    if (user.role === Role.GUEST) {
       throw new BadRequestException(
         `Користувач з ідентифікатором ${userId} ще не активований`
       );

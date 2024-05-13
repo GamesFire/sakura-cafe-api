@@ -29,7 +29,7 @@ export class UserGuard implements CanActivate {
 
       request["user"] = userPayload;
 
-      return userPayload.role !== Role.GHOST;
+      return userPayload.role !== Role.GUEST;
     } catch {
       throw new UnauthorizedException("Неправильний токен доступу");
     }

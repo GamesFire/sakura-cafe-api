@@ -14,7 +14,7 @@ SakuraCafe API provides a seamless user authentication experience, ensuring the 
 
 ### Role Management
 
-The API implements a role-based access control system with three distinct roles: `ghost`, `user`, and `admin`. Users start as `ghost` upon registration and must activate their accounts through email confirmation to become `user`. Administrators have elevated privileges, enabling them to manage content, approve or reject user orders, and assign admin roles to other users.
+The API implements a role-based access control system with three distinct roles: `guest`, `user`, and `admin`. Users start as `guest` upon registration and must activate their accounts through email confirmation to become `user`. Administrators have elevated privileges, enabling them to manage content, approve or reject user orders, and assign admin roles to other users.
 
 ### RESTful API and CRUD Operations
 
@@ -33,7 +33,7 @@ SakuraCafe API includes Swagger documentation for easy exploration of available 
 SakuraCafe API utilizes guards and pipes for request validation and authorization control.
 
 - **Admin Guard**: Protects routes that require admin privileges. Users must have the `admin` role to access these routes.
-- **User Guard**: Ensures that only authenticated users (excluding `ghost` users) can access certain routes.
+- **User Guard**: Ensures that only authenticated users (excluding `guest` users) can access certain routes.
 - **Validation Pipe**: Validates incoming request payloads using class-validator and class-transformer. It ensures that request data meets the specified validation rules, preventing invalid data from reaching the controllers.
 - **File Validation Pipe**: Specifically designed for validating uploaded files, this pipe checks file size, MIME type, and other criteria to ensure that only valid files are accepted.
 

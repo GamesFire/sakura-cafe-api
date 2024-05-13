@@ -29,13 +29,12 @@ export const OrderSchema: SchemaObject = {
             role: {
               type: "string",
               enum: Object.values(Role),
-              example: "ghost",
+              example: "guest",
             },
             activationLink: {
               type: "string",
               example: "c83d5864-77e2-40c7-b70a-9a6a8f729e45",
             },
-            isActivated: { type: "boolean", example: true },
           },
           required: [
             "id",
@@ -44,7 +43,6 @@ export const OrderSchema: SchemaObject = {
             "password",
             "role",
             "activationLink",
-            "isActivated",
           ],
         },
       },
