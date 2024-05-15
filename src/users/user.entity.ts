@@ -2,9 +2,9 @@ import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 import { ApiProperty } from "@nestjs/swagger";
 
 export enum Role {
-  ADMIN = "адміністратор",
-  USER = "користувач",
-  GUEST = "гість",
+  ADMIN = "admin",
+  USER = "user",
+  GUEST = "guest",
 }
 
 @Entity()
@@ -51,7 +51,7 @@ export class User {
     enumName: "Role",
     default: Role.GUEST,
     description: "Роль користувача",
-    example: "гість",
+    example: "guest",
   })
   role: string;
 
