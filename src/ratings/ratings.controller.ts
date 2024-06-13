@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  Param,
+  ParseIntPipe,
   Post,
   Query,
   Req,
@@ -12,17 +14,17 @@ import {
   ApiBadRequestResponse,
   ApiBearerAuth,
   ApiBody,
-  ApiConflictResponse,
   ApiForbiddenResponse,
   ApiNotFoundResponse,
   ApiOperation,
+  ApiParam,
   ApiQuery,
   ApiResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from "@nestjs/swagger";
 import { RatingsService } from "./ratings.service";
-import { AuthenticationGuard } from "src/authentications/authentication.guard";
+import { UserGuard } from "src/guards/user.guard";
 import { CreateRatingDto } from "./dto/create-rating.dto";
 import { AuthenticatedRequest } from "src/interfaces/AuthenticatedRequest";
 import { Rating } from "./rating.entity";
@@ -44,17 +46,16 @@ export class RatingsController {
     type: Rating,
   })
   @ApiBadRequestResponse({ description: "Неправильне введення" })
-  @ApiConflictResponse({ description: "Користувач вже оцінив цю їжу" })
   @ApiNotFoundResponse({
-    description: "Користувача, їжу або середню оцінку їжі не знайдено",
+    description: "Користувача або їжу не знайдено",
   })
   @ApiUnauthorizedResponse({
     description: "Токен доступу не надано або він недійсний",
   })
   @ApiForbiddenResponse({
-    description: "Тільки зареєстровані користувачі можуть виконати цю дію",
+    description: "Тільки верифіковані користувачі можуть виконати цю дію",
   })
-  @UseGuards(AuthenticationGuard)
+  @UseGuards(UserGuard)
   @ApiBearerAuth("JWT-auth")
   @Post()
   public async create(
@@ -86,16 +87,15 @@ export class RatingsController {
   })
   @ApiBadRequestResponse({ description: "Неправильне введення" })
   @ApiNotFoundResponse({
-    description:
-      "Користувач, їжа, середня оцінка їжі або оцінка їжі користувачем не знайдені",
+    description: "Користувач, їжа або оцінка їжі користувачем не знайдені",
   })
   @ApiUnauthorizedResponse({
     description: "Токен доступу не надано або він недійсний",
   })
   @ApiForbiddenResponse({
-    description: "Тільки зареєстровані користувачі можуть виконати цю дію",
+    description: "Тільки верифіковані користувачі можуть виконати цю дію",
   })
-  @UseGuards(AuthenticationGuard)
+  @UseGuards(UserGuard)
   @ApiBearerAuth("JWT-auth")
   @Delete()
   public async delete(
@@ -122,14 +122,51 @@ export class RatingsController {
     description: "Токен доступу не надано або він недійсний",
   })
   @ApiForbiddenResponse({
-    description: "Тільки зареєстровані користувачі можуть виконати цю дію",
+    description: "Тільки верифіковані користувачі можуть виконати цю дію",
   })
-  @UseGuards(AuthenticationGuard)
+  @UseGuards(UserGuard)
   @ApiBearerAuth("JWT-auth")
   @Get()
   public async getAll(@Req() request: AuthenticatedRequest) {
     const { user } = request;
 
     return this.ratingService.getAllRatings(user);
+  }
+
+  @ApiOperation({
+    summary: "Отримати оцінку користувача їжі за унікальним ідентифікатором",
+  })
+  @ApiParam({
+    name: "foodId",
+    description:
+      "Ідентифікатор їжі, для якої потрібно отримати оцінку користувача",
+    example: 1,
+    type: Number,
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Оцінку користувача їжі успішно знайдено",
+    type: Rating,
+  })
+  @ApiBadRequestResponse({ description: "Неправильне введення" })
+  @ApiNotFoundResponse({
+    description: "Користувача, їжу або оцінку їжі користувача не знайдено",
+  })
+  @ApiUnauthorizedResponse({
+    description: "Токен доступу не надано або він недійсний",
+  })
+  @ApiForbiddenResponse({
+    description: "Тільки верифіковані користувачі можуть виконати цю дію",
+  })
+  @UseGuards(UserGuard)
+  @ApiBearerAuth("JWT-auth")
+  @Get("/:foodId")
+  public async getOne(
+    @Param("foodId", ParseIntPipe) foodId: number,
+    @Req() request: AuthenticatedRequest
+  ) {
+    const { user } = request;
+
+    return this.ratingService.getOneRating(foodId, user);
   }
 }

@@ -7,7 +7,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Order, Status } from "./order.entity";
 import { Repository } from "typeorm";
 import { TraysService } from "src/trays/trays.service";
-import { TraysFoodsService } from "src/trays-foods/trays-foods.service";
+import { UsersService } from "src/users/users.service";
 import { UserPayload } from "src/interfaces/AuthenticatedRequest";
 
 @Injectable()
@@ -16,19 +16,32 @@ export class OrdersService {
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
     private readonly trayService: TraysService,
-    private readonly trayFoodService: TraysFoodsService
+    private readonly userService: UsersService
   ) {}
 
+  private async getMostRecentOrder(userId: number): Promise<Order | undefined> {
+    return this.orderRepository.findOne({
+      where: { tray: { user: { id: userId } } },
+      order: { date: "DESC" },
+      relations: ["tray", "tray.user"],
+    });
+  }
+
   public async createOrder(user: UserPayload): Promise<Order> {
+    const recentOrder = await this.getMostRecentOrder(user.id);
     const userTray = await this.trayService.getMostRecentUserTray(user.id);
+
+    if (recentOrder && recentOrder.status === Status.PENDING) {
+      throw new ConflictException(
+        `Ваше останнє замовлення №${recentOrder.id} ще обробляється. Ви не можете створити нове замовлення, поки попереднє не буде оброблено.`
+      );
+    }
 
     if (await this.getOrderByTrayId(userTray.id)) {
       throw new ConflictException(
         `Для таці з ідентифікатором ${userTray.id} вже існує замовлення`
       );
     }
-
-    await this.trayFoodService.getFoodsFromTray(userTray.id);
 
     const order = new Order();
     order.status = Status.PENDING;
@@ -43,6 +56,47 @@ export class OrdersService {
 
   public async saveOrder(order: Order): Promise<Order> {
     return await this.orderRepository.save(order);
+  }
+
+  public async getOwnOrders(user: UserPayload): Promise<Order[]> {
+    const userAllTrays = await this.trayService.getUserAllTrays(user.id);
+
+    if (userAllTrays.length === 0) {
+      throw new NotFoundException(
+        `Таця для користувача з ідентифікатором ${user.id} не знайдено`
+      );
+    }
+
+    const trayIds = userAllTrays.map((tray) => tray.id);
+
+    let userOrders: Order[] = [];
+
+    for (let i = 0; i < trayIds.length; i++) {
+      const order = await this.orderRepository.findOne({
+        where: { tray: { id: trayIds[i] } },
+        relations: ["tray", "tray.foods", "tray.foods.ingredients"],
+      });
+
+      if (order) {
+        userOrders.push(order);
+      }
+    }
+
+    return userOrders;
+  }
+
+  public async getAllOrders(): Promise<Order[]> {
+    const allOrders = await this.orderRepository.find({
+      relations: ["tray", "tray.user", "tray.foods", "tray.foods.ingredients"],
+    });
+
+    return allOrders.map((order) => {
+      if (order.tray && order.tray.user) {
+        (order.tray.user as UserPayload) =
+          this.userService.transformUserToUserPayload(order.tray.user);
+      }
+      return order;
+    });
   }
 
   public async cancelOrder(id: number, user: UserPayload): Promise<Order> {
@@ -79,37 +133,6 @@ export class OrdersService {
     await this.saveOrder(order);
 
     return order;
-  }
-
-  public async getOwnOrders(user: UserPayload): Promise<Order[]> {
-    const userAllTrays = await this.trayService.getUserAllTrays(user.id);
-
-    if (userAllTrays.length === 0) {
-      throw new NotFoundException(
-        `Таця для користувача з ідентифікатором ${user.id} не знайдено`
-      );
-    }
-
-    const trayIds = userAllTrays.map((tray) => tray.id);
-
-    let userOrders: Order[] = [];
-
-    for (let i = 0; i < trayIds.length; i++) {
-      const order = await this.orderRepository.findOne({
-        where: { tray: { id: trayIds[i] } },
-        relations: ["tray"],
-      });
-
-      if (order) {
-        userOrders.push(order);
-      }
-    }
-
-    return userOrders;
-  }
-
-  public async getAllOrders(): Promise<Order[]> {
-    return await this.orderRepository.find({ relations: ["tray"] });
   }
 
   public async acceptOrder(orderId: number): Promise<Order> {
@@ -159,7 +182,7 @@ export class OrdersService {
   public async getOrderById(id: number): Promise<Order | null> {
     return await this.orderRepository.findOne({
       where: { id },
-      relations: ["tray"],
+      relations: ["tray", "tray.user", "tray.foods", "tray.foods.ingredients"],
     });
   }
 

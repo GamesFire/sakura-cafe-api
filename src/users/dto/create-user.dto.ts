@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsEmail, IsString, Length, IsNotEmpty } from "class-validator";
+import { IsNotBlank } from "src/validators/is-not-blank.validator";
 
 export class CreateUserDto {
   @ApiProperty({
@@ -9,6 +10,9 @@ export class CreateUserDto {
   })
   @IsString({ message: "Ім'я має бути рядком" })
   @IsNotEmpty({ message: "Ім'я не може бути порожнім" })
+  @IsNotBlank({
+    message: "Ім'я не може бути порожнім або складатися лише з пробілів",
+  })
   readonly name: string;
 
   @ApiProperty({

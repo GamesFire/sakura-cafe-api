@@ -1,12 +1,14 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Category } from "src/categories/category.entity";
-import { FoodIngredient } from "src/foods-ingredients/food-ingredient.entity";
+import { Ingredient } from "src/ingredients/ingredient.entity";
+import { Tray } from "src/trays/tray.entity";
 import {
   Column,
   Entity,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
 } from "typeorm";
 
@@ -32,10 +34,10 @@ export class Food {
     description: "Вартість їжі",
     default: 0,
     minimum: 0,
-    maximum: 999999.99,
-    example: 599.99,
+    maximum: 999999,
+    example: 599,
   })
-  @Column({ type: "decimal", precision: 8, scale: 2, default: 0 })
+  @Column({ default: 0 })
   price: number;
 
   @ApiProperty({
@@ -65,8 +67,22 @@ export class Food {
 
   @ApiProperty({
     description: "Інгредієнти, пов'язані з їжею",
-    type: () => [FoodIngredient],
+    type: () => [Ingredient],
   })
-  @OneToMany(() => FoodIngredient, (ingredient) => ingredient.food)
-  ingredients: FoodIngredient[];
+  @ManyToMany(() => Ingredient, (ingredient) => ingredient.foods, {
+    cascade: true,
+  })
+  @JoinTable({
+    name: "food_ingredient",
+    joinColumn: { name: "food_id" },
+    inverseJoinColumn: { name: "ingredient_id" },
+  })
+  ingredients: Ingredient[];
+
+  @ApiProperty({
+    description: "Таці, пов'язані з їжею",
+    type: () => [Tray],
+  })
+  @ManyToMany(() => Tray, (tray) => tray.foods)
+  trays: Tray[];
 }

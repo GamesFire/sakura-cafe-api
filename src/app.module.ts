@@ -11,12 +11,11 @@ import { MailerModule } from "@nestjs-modules/mailer";
 import { TraysModule } from "./trays/trays.module";
 import { FoodsModule } from "./foods/foods.module";
 import { CategoriesModule } from "./categories/categories.module";
-import { TraysFoodsModule } from "./trays-foods/trays-foods.module";
 import { FilesModule } from "./files/files.module";
 import { RatingModule } from "./ratings/ratings.module";
 import { OrdersModule } from "./orders/orders.module";
-import { IngredientsModule } from './ingredients/ingredients.module';
-import { FoodsIngredientsModule } from './foods-ingredients/foods-ingredients.module';
+import { IngredientsModule } from "./ingredients/ingredients.module";
+import { FeedbacksModule } from './feedbacks/feedbacks.module';
 import databaseConfig from "config/database.config";
 import mailerConfig from "config/mailer.config";
 
@@ -40,12 +39,11 @@ import mailerConfig from "config/mailer.config";
     TraysModule,
     FoodsModule,
     CategoriesModule,
-    TraysFoodsModule,
     FilesModule,
     RatingModule,
     OrdersModule,
     IngredientsModule,
-    FoodsIngredientsModule,
+    FeedbacksModule,
   ],
 })
 export class AppModule {}

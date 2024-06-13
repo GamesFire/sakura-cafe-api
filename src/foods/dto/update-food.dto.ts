@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 import {
   IsOptional,
   IsNumber,
@@ -9,6 +9,11 @@ import {
   IsNotEmpty,
   Length,
   Max,
+  IsArray,
+  ArrayMinSize,
+  ArrayMaxSize,
+  ArrayNotEmpty,
+  IsInt,
 } from "class-validator";
 
 export class UpdateFoodDto {
@@ -52,16 +57,16 @@ export class UpdateFoodDto {
     type: Number,
     description: "Нова ціна їжі",
     minimum: 0,
-    maximum: 999999.99,
-    example: 599.99,
+    maximum: 999999,
+    example: 599,
     required: false,
   })
   @Type(() => Number)
   @IsOptional()
   @IsNumber({}, { message: "Нова вартість їжі має бути числом" })
   @Min(0, { message: "Нова вартість їжі повинна бути щонайменше 0" })
-  @Max(999999.99, {
-    message: "Нова вартість їжі не повинна перевищувати 999999.99",
+  @Max(999999, {
+    message: "Нова вартість їжі не повинна перевищувати 999999",
   })
   @IsNotEmpty({ message: "Нова вартість їжі не може бути порожньою" })
   readonly newPrice?: number;
@@ -102,4 +107,46 @@ export class UpdateFoodDto {
     message: "Новий ідентифікатор категорії їжі не може бути порожнім",
   })
   readonly newCategoryId?: number;
+
+  @ApiProperty({
+    type: [Number],
+    description:
+      "Новий масив ідентифікаторів інгредієнтів, які потрібно додати до їжі",
+    example: [1, 2, 3],
+    required: false,
+  })
+  @IsOptional()
+  @IsArray({
+    message: "Новий масив ідентифікаторів інгредієнтів повинен бути масивом",
+  })
+  @ArrayMinSize(1, {
+    message:
+      "Новий масив ідентифікаторів інгредієнтів повинен містити принаймні один елемент",
+  })
+  @ArrayMaxSize(100, {
+    message:
+      "Новий масив ідентифікаторів інгредієнтів повинен містити не більше 100 елементів",
+  })
+  @ArrayNotEmpty({
+    message: "Новий масив ідентифікаторів інгредієнтів не може бути порожнім",
+  })
+  @IsInt({
+    each: true,
+    message:
+      "Нові елементи масиву ідентифікаторів інгредієнтів повинні бути цілими числами",
+  })
+  @IsPositive({
+    each: true,
+    message:
+      "Нові елементи масиву ідентифікаторів інгредієнтів повинні бути позитивними числами",
+  })
+  @Transform(({ value }) => {
+    if (!Array.isArray(value)) {
+      value = [value];
+    }
+    return value
+      .map(Number)
+      .filter((id: any) => !isNaN(id) && id > 0 && Number.isInteger(id));
+  })
+  readonly newIngredientsIds?: number[];
 }

@@ -1,8 +1,8 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
+  Patch,
   Post,
   Query,
   Req,
@@ -45,7 +45,10 @@ export class OrdersController {
   @ApiNotFoundResponse({
     description: "Користувача або таця для користувача не знайдено",
   })
-  @ApiConflictResponse({ description: "Замовлення вже має тацю" })
+  @ApiConflictResponse({
+    description:
+      "Ваше останнє замовлення ще обробляється або замовлення вже має тацю",
+  })
   @ApiUnauthorizedResponse({
     description: "Токен доступу не надано або він недійсний",
   })
@@ -59,43 +62,6 @@ export class OrdersController {
     const { user } = request;
 
     return this.orderService.createOrder(user);
-  }
-
-  @ApiOperation({ summary: "Скасувати замовлення за ідентифікатором" })
-  @ApiQuery({
-    name: "orderId",
-    description: "Ідентифікатор замовлення, яке потрібно скасувати",
-    example: 1,
-    type: Number,
-  })
-  @ApiResponse({
-    status: 200,
-    description: "Замовлення успішно скасовано",
-    schema: generateOrderSchema(Status.CANCELED),
-  })
-  @ApiBadRequestResponse({ description: "Неправильне введення" })
-  @ApiNotFoundResponse({
-    description: "Замовлення або таця користувача не знайдено",
-  })
-  @ApiConflictResponse({
-    description: `Замовлення не може бути скасоване, якщо воно не перебуває в статусі "на розгляді" або не належить жодному з таць користувача`,
-  })
-  @ApiUnauthorizedResponse({
-    description: "Токен доступу не надано або він недійсний",
-  })
-  @ApiForbiddenResponse({
-    description: "Тільки верифіковані користувачі можуть виконати цю дію",
-  })
-  @UseGuards(UserGuard)
-  @ApiBearerAuth("JWT-auth")
-  @Delete()
-  public async cancel(
-    @Query("orderId") orderId: number,
-    @Req() request: AuthenticatedRequest
-  ) {
-    const { user } = request;
-
-    return this.orderService.cancelOrder(orderId, user);
   }
 
   @ApiOperation({ summary: "Отримати всі власні замовлення користувача" })
@@ -134,13 +100,50 @@ export class OrdersController {
     description: "Токен доступу не надано або він недійсний",
   })
   @ApiForbiddenResponse({
-    description: "Тільки верифіковані користувачі можуть виконати цю дію",
+    description: "Тільки адміністратори можуть виконувати цю дію",
   })
   @UseGuards(AdminGuard)
   @ApiBearerAuth("JWT-auth")
   @Get()
   public async getAll() {
     return this.orderService.getAllOrders();
+  }
+
+  @ApiOperation({ summary: "Скасувати замовлення" })
+  @ApiQuery({
+    name: "orderId",
+    description: "Ідентифікатор замовлення, яке потрібно скасувати",
+    example: 1,
+    type: Number,
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Замовлення успішно скасовано",
+    schema: generateOrderSchema(Status.CANCELED),
+  })
+  @ApiBadRequestResponse({ description: "Неправильне введення" })
+  @ApiNotFoundResponse({
+    description: "Замовлення або таця користувача не знайдено",
+  })
+  @ApiConflictResponse({
+    description: `Замовлення не може бути скасоване, якщо воно не перебуває в статусі "на розгляді" або не належить жодному з таць користувача`,
+  })
+  @ApiUnauthorizedResponse({
+    description: "Токен доступу не надано або він недійсний",
+  })
+  @ApiForbiddenResponse({
+    description: "Тільки верифіковані користувачі можуть виконати цю дію",
+  })
+  @UseGuards(UserGuard)
+  @ApiBearerAuth("JWT-auth")
+  @Patch("/cancel")
+  public async cancel(
+    @Query("orderId") orderId: number,
+    @Req() request: AuthenticatedRequest
+  ) {
+    const { user } = request;
+
+    return this.orderService.cancelOrder(orderId, user);
   }
 
   @ApiOperation({ summary: "Прийняти замовлення" })
@@ -169,7 +172,7 @@ export class OrdersController {
   })
   @UseGuards(AdminGuard)
   @ApiBearerAuth("JWT-auth")
-  @Post("/accept")
+  @Patch("/accept")
   public async accept(@Body() orderDto: AcceptRejectOrderDto) {
     return this.orderService.acceptOrder(orderDto.orderId);
   }
@@ -201,7 +204,7 @@ export class OrdersController {
   })
   @UseGuards(AdminGuard)
   @ApiBearerAuth("JWT-auth")
-  @Post("/reject")
+  @Patch("/reject")
   public async reject(@Body() orderDto: AcceptRejectOrderDto) {
     return this.orderService.rejectOrder(orderDto.orderId);
   }

@@ -1,8 +1,4 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, DeleteResult } from "typeorm";
 import { Rating } from "./rating.entity";
@@ -45,7 +41,7 @@ export class RatingsService {
     });
 
     if (existingRating) {
-      throw new ConflictException("Ви вже оцінили цю їжу");
+      await this.ratingRepository.delete(existingRating.id);
     }
 
     const rating = new Rating();
@@ -55,12 +51,10 @@ export class RatingsService {
 
     await this.saveRating(rating);
 
-    const averageRating = await this.getAverageRating(food);
+    let averageRating = await this.getAverageRating(food);
 
     if (!averageRating) {
-      throw new NotFoundException(
-        `Середній рейтинг їжі з ідентифікатором ${food.id} не знайдено`
-      );
+      averageRating = 0;
     }
 
     food.rating = averageRating;
@@ -99,17 +93,15 @@ export class RatingsService {
 
     if (!existingRating) {
       throw new NotFoundException(
-        `Оцінки для їжі з ідентифікатором ${foodId} користувачем з ідентифікатором ${user.id} не знайдено`
+        `Оцінку для їжі з ідентифікатором ${foodId} користувачем з ідентифікатором ${user.id} не знайдено`
       );
     }
 
     const deletedRating = await this.ratingRepository.delete(existingRating.id);
-    const averageRating = await this.getAverageRating(food);
+    let averageRating = await this.getAverageRating(food);
 
     if (!averageRating) {
-      throw new NotFoundException(
-        `Середній рейтинг їжі з ідентифікатором ${food.id} не знайдено`
-      );
+      averageRating = 0;
     }
 
     food.rating = averageRating;
@@ -134,6 +126,37 @@ export class RatingsService {
     });
 
     return allRatings;
+  }
+
+  public async getOneRating(
+    foodId: number,
+    user: UserPayload
+  ): Promise<Rating> {
+    const userFromDatabase = await this.userService.getUserById(user.id);
+
+    if (!userFromDatabase) {
+      throw new NotFoundException(
+        `Користувача з ідентифікатором ${user.id} не знайдено`
+      );
+    }
+
+    const food = await this.foodService.getFoodById(foodId);
+
+    if (!food) {
+      throw new NotFoundException(
+        `Їжу з ідентифікатором ${foodId} не знайдено`
+      );
+    }
+
+    const rating = await this.ratingRepository.findOne({
+      where: { user: userFromDatabase, food },
+    });
+
+    if (!rating) {
+      throw new NotFoundException(`Оцінку їжі користувача не знайдено`);
+    }
+
+    return rating;
   }
 
   public async getRatingById(id: number): Promise<Rating | null> {

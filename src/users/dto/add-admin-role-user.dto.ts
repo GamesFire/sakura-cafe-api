@@ -11,7 +11,7 @@ export class AddAdminRoleUserDto {
     example: 1,
   })
   @Type(() => Number)
-  @IsNumber({}, { message: "Ідентифікатор користувача повинен бути числомr" })
+  @IsNumber({}, { message: "Ідентифікатор користувача повинен бути числом" })
   @IsPositive({
     message: "Ідентифікатор користувача повинен бути позитивним числом",
   })

@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Food } from "src/foods/food.entity";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Category {
@@ -18,4 +19,11 @@ export class Category {
   })
   @Column({ unique: true, nullable: false })
   name: string;
+
+  @ApiProperty({
+    description: "Їжа, пов'язана з категорією",
+    type: () => [Food],
+  })
+  @OneToMany(() => Food, (food) => food.category)
+  foods: Food[];
 }

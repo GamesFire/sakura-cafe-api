@@ -30,7 +30,7 @@ import {
 } from "@nestjs/swagger";
 import AuthenticationSchema from "./authentication.schema";
 
-@ApiTags("Автентифікація")
+@ApiTags("Автентифікації")
 @Controller("authentications")
 export class AuthenticationsController {
   constructor(private readonly authenticationService: AuthenticationsService) {}

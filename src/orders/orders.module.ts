@@ -6,7 +6,7 @@ import { Order } from "./order.entity";
 import { Tray } from "src/trays/tray.entity";
 import { TokensModule } from "src/tokens/tokens.module";
 import { TraysModule } from "src/trays/trays.module";
-import { TraysFoodsModule } from "src/trays-foods/trays-foods.module";
+import { UsersModule } from "src/users/users.module";
 
 @Module({
   controllers: [OrdersController],
@@ -15,7 +15,7 @@ import { TraysFoodsModule } from "src/trays-foods/trays-foods.module";
     TypeOrmModule.forFeature([Order, Tray]),
     TokensModule,
     TraysModule,
-    TraysFoodsModule,
+    UsersModule,
   ],
   exports: [OrdersService],
 })

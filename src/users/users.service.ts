@@ -7,6 +7,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Role, User } from "./user.entity";
 import { CreateUserDto } from "./dto/create-user.dto";
+import { UserPayload } from "src/interfaces/AuthenticatedRequest";
 
 @Injectable()
 export class UsersService {
@@ -32,7 +33,7 @@ export class UsersService {
     return await this.userRepository.save(user);
   }
 
-  public async addAdminRoleForUser(userId: number): Promise<User> {
+  public async addAdminRoleForUser(userId: number): Promise<UserPayload> {
     const user = await this.userRepository.findOneBy({ id: userId });
 
     if (!user) {
@@ -57,11 +58,18 @@ export class UsersService {
 
     await this.saveUser(user);
 
-    return user;
+    const userPayload = this.transformUserToUserPayload(user);
+
+    return userPayload;
   }
 
-  public async getAllUsers(): Promise<User[]> {
-    return await this.userRepository.find();
+  public async getAllUsers(): Promise<UserPayload[]> {
+    const users = await this.userRepository.find();
+    const usersPayload = users.map((user) =>
+      this.transformUserToUserPayload(user)
+    );
+
+    return usersPayload;
   }
 
   public async getUserById(id: number): Promise<User | null> {
@@ -76,5 +84,14 @@ export class UsersService {
     activationLink: string
   ): Promise<User | null> {
     return await this.userRepository.findOneBy({ activationLink });
+  }
+
+  public transformUserToUserPayload(user: User): UserPayload {
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    };
   }
 }

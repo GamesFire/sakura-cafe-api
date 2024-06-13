@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 import {
   IsNumber,
   IsString,
@@ -8,6 +8,11 @@ import {
   IsNotEmpty,
   Length,
   Max,
+  IsArray,
+  ArrayMinSize,
+  ArrayMaxSize,
+  ArrayNotEmpty,
+  IsInt,
 } from "class-validator";
 
 export class CreateFoodDto {
@@ -29,14 +34,14 @@ export class CreateFoodDto {
     type: Number,
     description: "Назва їжі не може бути порожньою",
     minimum: 0,
-    maximum: 999999.99,
-    example: 599.99,
+    maximum: 999999,
+    example: 599,
   })
   @Type(() => Number)
   @IsNumber({}, { message: "Вартість їжі має бути числом" })
   @Min(0, { message: "Вартість їжі повинна бути щонайменше 0" })
-  @Max(999999.99, {
-    message: "Вартість їжі не повинна перевищувати 999999.99",
+  @Max(999999, {
+    message: "Вартість їжі не повинна перевищувати 999999",
   })
   @IsNotEmpty({ message: "Вартість їжі не може бути порожньою" })
   readonly price: number;
@@ -68,4 +73,44 @@ export class CreateFoodDto {
   })
   @IsNotEmpty({ message: "Ідентифікатор категорії їжі не може бути порожнім" })
   readonly categoryId: number;
+
+  @ApiProperty({
+    type: [Number],
+    description:
+      "Масив ідентифікаторів інгредієнтів, які потрібно додати до їжі",
+    example: [1, 2, 3],
+  })
+  @IsArray({
+    message: "Масив ідентифікаторів інгредієнтів повинен бути масивом",
+  })
+  @ArrayMinSize(1, {
+    message:
+      "Масив ідентифікаторів інгредієнтів повинен містити принаймні один елемент",
+  })
+  @ArrayMaxSize(100, {
+    message:
+      "Масив ідентифікаторів інгредієнтів повинен містити не більше 100 елементів",
+  })
+  @ArrayNotEmpty({
+    message: "Масив ідентифікаторів інгредієнтів не може бути порожнім",
+  })
+  @IsInt({
+    each: true,
+    message:
+      "Елементи масиву ідентифікаторів інгредієнтів повинні бути цілими числами",
+  })
+  @IsPositive({
+    each: true,
+    message:
+      "Елементи масиву ідентифікаторів інгредієнтів повинні бути позитивними числами",
+  })
+  @Transform(({ value }) => {
+    if (!Array.isArray(value)) {
+      value = [value];
+    }
+    return value
+      .map(Number)
+      .filter((id: any) => !isNaN(id) && id > 0 && Number.isInteger(id));
+  })
+  readonly ingredientsIds: number[];
 }

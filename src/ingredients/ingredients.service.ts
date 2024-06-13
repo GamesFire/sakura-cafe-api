@@ -70,11 +70,21 @@ export class IngredientsService {
   }
 
   public async deleteIngredient(id: number): Promise<DeleteResult> {
-    const ingredient = await this.getIngredientById(id);
+    const ingredient = await this.ingredientRepository.findOne({
+      where: { id },
+      relations: ["foods"],
+    });
 
     if (!ingredient) {
       throw new NotFoundException(
         `Інгредієнт з ідентифікатором ${id} не знайдено`
+      );
+    }
+
+    if (ingredient.foods.length > 0) {
+      const foodNames = ingredient.foods.map((food) => food.name).join(", ");
+      throw new ConflictException(
+        `Інгредієнт використовується в наступній їжу: ${foodNames}`
       );
     }
 

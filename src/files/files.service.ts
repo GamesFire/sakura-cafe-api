@@ -68,8 +68,6 @@ export class FilesService {
             resolve();
           }
         });
-      } else {
-        reject(new NotFoundException("Файл не знайдено"));
       }
     });
   }

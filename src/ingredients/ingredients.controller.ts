@@ -42,7 +42,7 @@ export class IngredientsController {
   constructor(private readonly ingredientService: IngredientsService) {}
 
   @ApiOperation({ summary: "Створити новий інгредієнт" })
-  @ApiExtraModels()
+  @ApiExtraModels(CreateIngredientDto)
   @ApiBody({
     description:
       "Об'єкт передачі даних, що містить інформацію про новий інгредієнт",
@@ -96,6 +96,7 @@ export class IngredientsController {
   }
 
   @ApiOperation({ summary: "Оновлення існуючого інгредієнту" })
+  @ApiExtraModels(UpdateIngredientDto)
   @ApiBody({
     description:
       "Об'єкт передачі даних, що містить інформацію про інгредієнт, який потрібно оновити",
@@ -105,10 +106,10 @@ export class IngredientsController {
         {
           type: "object",
           properties: {
-            image: {
+            newImage: {
               type: "string",
               format: "binary",
-              description: "Файл зображення інгредієнту",
+              description: "Новий файл зображення інгредієнту",
               example: "ingredient-image.jpg",
             },
           },
@@ -127,7 +128,7 @@ export class IngredientsController {
   @ApiInternalServerErrorResponse({
     description: "Виникла помилка під час видалення файлу або запису файлу",
   })
-  @ApiNotFoundResponse({ description: "Інгредієнт або файл не знайдено" })
+  @ApiNotFoundResponse({ description: "Інгредієнт не знайдено" })
   @ApiUnauthorizedResponse({
     description: "Токен доступу не надано або він недійсний",
   })
@@ -141,7 +142,7 @@ export class IngredientsController {
   @UseInterceptors(FileInterceptor("newImage"))
   public async update(
     @Body() ingredientDto: UpdateIngredientDto,
-    @UploadedFile(FileValidationPipe) newImage: CustomUploadedFile
+    @UploadedFile(FileValidationPipe) newImage?: CustomUploadedFile
   ) {
     return this.ingredientService.updateIngredient(ingredientDto, newImage);
   }
@@ -168,7 +169,10 @@ export class IngredientsController {
   @ApiInternalServerErrorResponse({
     description: "Виникла помилка під час видалення файлу",
   })
-  @ApiNotFoundResponse({ description: "Інгредієнт або файл не знайдено" })
+  @ApiConflictResponse({
+    description: "Інгредієнт використовується в їжі",
+  })
+  @ApiNotFoundResponse({ description: "Інгредієнт не знайдено" })
   @ApiUnauthorizedResponse({
     description: "Токен доступу не надано або він недійсний",
   })
@@ -182,7 +186,7 @@ export class IngredientsController {
     return this.ingredientService.deleteIngredient(id);
   }
 
-  @ApiOperation({ summary: "Достати усі назви інгредієнтів" })
+  @ApiOperation({ summary: "Дістати усі назви інгредієнтів" })
   @ApiResponse({
     status: 200,
     description: "Список усіх назв інгредієнтів",
