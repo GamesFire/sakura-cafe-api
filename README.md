@@ -2,6 +2,8 @@
 
 ![SakuraCafe API](./sakura-cafe-api.jpg)
 
+Welcome to the `sakura-cafe-api` repository, the server part of the SakuraCafe. This repository complements the frontend application, which is located at [GamesFire/sakura-cafe](https://github.com/GamesFire/sakura-cafe.git).
+
 ## Overview
 
 Welcome to SakuraCafe API, the server-side component of the SakuraCafe website, a Japanese cuisine cafe. This API, built with NestJS, provides a comprehensive set of features for user authentication, role management, and CRUD operations for managing categories, food items, ingredients, and orders. Utilizing technologies like JWT, TypeORM, and PostgreSQL, SakuraCafe API ensures secure and efficient operation.
